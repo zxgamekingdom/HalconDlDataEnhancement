@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halcon深度学习数据增强", "Halcon深度学习数据增强\Halcon深度学习数据增强.csproj", "{86CCCB72-2719-40E4-9F88-63C712CC6F1C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject", "TestProject\TestProject.csproj", "{256F2AD1-5DFC-4EEC-B81B-93FC99983911}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{86CCCB72-2719-40E4-9F88-63C712CC6F1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86CCCB72-2719-40E4-9F88-63C712CC6F1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86CCCB72-2719-40E4-9F88-63C712CC6F1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86CCCB72-2719-40E4-9F88-63C712CC6F1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{256F2AD1-5DFC-4EEC-B81B-93FC99983911}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{256F2AD1-5DFC-4EEC-B81B-93FC99983911}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{256F2AD1-5DFC-4EEC-B81B-93FC99983911}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{256F2AD1-5DFC-4EEC-B81B-93FC99983911}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
