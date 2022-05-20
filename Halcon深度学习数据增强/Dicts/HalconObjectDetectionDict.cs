@@ -21,12 +21,12 @@ public class HalconObjectDetectionDict
     {
         var buff = new HalconObjectDetectionDict
         {
-            Ids = dict.FromKey("class_ids", x => x.LArr.ToList()),
-            Names = dict.FromKey("class_names", x => x.SArr.ToList()),
-            ImageDir = dict.FromKey("image_dir", x => x.S)
+            Ids = dict.FromKeyTuple("class_ids", x => x.LArr.ToList()),
+            Names = dict.FromKeyTuple("class_names", x => x.SArr.ToList()),
+            ImageDir = dict.FromKeyTuple("image_dir", x => x.S)
         };
 
-        var handles = dict.FromKey("samples", x => x.HArr);
+        var handles = dict.FromKeyTuple("samples", x => x.HArr);
 
         if (handles == null) return buff;
 
@@ -39,13 +39,13 @@ public class HalconObjectDetectionDict
 
             list.Add(new Sample
             {
-                Id = d.FromKey("image_id", x => x.L),
-                FileName = d.FromKey("image_file_name", x => x.S),
-                BboxLabelId = d.FromKey("bbox_label_id", x => x.LArr.ToList()),
-                BboxRow1 = d.FromKey("bbox_row1", x => x.DArr.ToList()),
-                BboxCol1 = d.FromKey("bbox_col1", x => x.DArr.ToList()),
-                BboxRow2 = d.FromKey("bbox_row2", x => x.DArr.ToList()),
-                BboxCol2 = d.FromKey("bbox_col2", x => x.DArr.ToList())
+                Id = d.FromKeyTuple("image_id", x => x.L),
+                FileName = d.FromKeyTuple("image_file_name", x => x.S),
+                BboxLabelId = d.FromKeyTuple("bbox_label_id", x => x.LArr.ToList()),
+                BboxRow1 = d.FromKeyTuple("bbox_row1", x => x.DArr.ToList()),
+                BboxCol1 = d.FromKeyTuple("bbox_col1", x => x.DArr.ToList()),
+                BboxRow2 = d.FromKeyTuple("bbox_row2", x => x.DArr.ToList()),
+                BboxCol2 = d.FromKeyTuple("bbox_col2", x => x.DArr.ToList())
             });
         }
 
@@ -179,18 +179,25 @@ public class HalconObjectDetectionDict
             if (BboxRow2 == null) errors.Add($"{nameof(BboxRow2)}为空");
             if (BboxCol2 == null) errors.Add($"{nameof(BboxCol2)}为空");
 
-            //BboxLabelId BboxRow1 BboxCol1 BboxRow2 BboxCol2长度不一致
-            if (BboxCol2 != null &&
-                BboxRow2 != null &&
-                BboxCol1 != null &&
-                BboxRow1 != null &&
+            if (BboxRow1 != null &&
                 BboxLabelId != null &&
-                (BboxLabelId.Count != BboxRow1.Count ||
-                    BboxLabelId.Count != BboxCol1.Count ||
-                    BboxLabelId.Count != BboxRow2.Count ||
-                    BboxLabelId.Count != BboxCol2.Count))
-                errors.Add(
-                    $"{nameof(BboxLabelId)}、{nameof(BboxRow1)}、{nameof(BboxCol1)}、{nameof(BboxRow2)}、{nameof(BboxCol2)}长度不一致");
+                BboxLabelId.Count != BboxRow1.Count)
+                errors.Add($"{nameof(BboxLabelId)}与{nameof(BboxRow1)}数量不一致");
+
+            if (BboxCol1 != null &&
+                BboxLabelId != null &&
+                BboxLabelId.Count != BboxCol1.Count)
+                errors.Add($"{nameof(BboxLabelId)}与{nameof(BboxCol1)}数量不一致");
+
+            if (BboxRow2 != null &&
+                BboxLabelId != null &&
+                BboxLabelId.Count != BboxRow2.Count)
+                errors.Add($"{nameof(BboxLabelId)}与{nameof(BboxRow2)}数量不一致");
+
+            if (BboxCol2 != null &&
+                BboxLabelId != null &&
+                BboxLabelId.Count != BboxCol2.Count)
+                errors.Add($"{nameof(BboxLabelId)}与{nameof(BboxCol2)}数量不一致");
 
             return errors;
         }
