@@ -79,7 +79,8 @@ public class HalconSemanticSegmentationDict
             {
                 Id = d.FromKeyTuple("image_id", x => x.L),
                 FileName = d.FromKeyTuple("image_file_name", x => x.S),
-                SegmentationFileName = d.FromKeyTuple("segmentation_file_name", x => x.S)
+                SegmentationFileName =
+                    d.FromKeyTuple("segmentation_file_name", x => x.S)
             });
         }
 
@@ -122,6 +123,13 @@ public class HalconSemanticSegmentationDict
                 errorList.Add(当重复时(value));
             else
                 set.Add(value);
+    }
+
+    public static class ClassCustomDataConst
+    {
+
+        public const string IsBgClass = "is_bg_class";
+
     }
 
     public class SampleComparer : IEqualityComparer<Sample>
