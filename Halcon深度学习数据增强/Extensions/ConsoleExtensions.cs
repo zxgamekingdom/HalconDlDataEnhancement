@@ -5,6 +5,16 @@ namespace Halcon深度学习数据增强.Extensions;
 internal static class ConsoleExtensions
 {
 
+    public static void ConsoleSplitLine(char splitLineChar = '_',
+        ConsoleColor foregroundColor = ConsoleColor.Gray,
+        ConsoleColor backgroundColor = ConsoleColor.Black)
+    {
+        var width = Console.WindowWidth;
+
+        new string(splitLineChar, width - 1).WriteLine(foregroundColor,
+            backgroundColor);
+    }
+
     public static void WriteLine<T>(this T t,
         ConsoleColor foregroundColor = ConsoleColor.Gray,
         ConsoleColor backgroundColor = ConsoleColor.Black)
@@ -19,16 +29,6 @@ internal static class ConsoleExtensions
             Console.BackgroundColor = backgroundBuff;
             Console.ForegroundColor = foregroundBuff;
         }
-    }
-
-    public static void ConsoleSplitLine(char splitLineChar = '_',
-        ConsoleColor foregroundColor = ConsoleColor.Gray,
-        ConsoleColor backgroundColor = ConsoleColor.Black)
-    {
-        var width = Console.WindowWidth;
-
-        new string(splitLineChar, width - 1).WriteLine(foregroundColor,
-            backgroundColor);
     }
 
 }

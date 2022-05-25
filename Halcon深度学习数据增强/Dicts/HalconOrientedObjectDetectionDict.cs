@@ -11,9 +11,9 @@ public class HalconOrientedObjectDetectionDict
 
     public List<long>? Ids { get; set; }
 
-    public List<string>? Names { get; set; }
-
     public string? ImageDir { get; set; }
+
+    public List<string>? Names { get; set; }
 
     public List<Sample>? Samples { get; set; }
 
@@ -55,23 +55,6 @@ public class HalconOrientedObjectDetectionDict
         return buff;
     }
 
-    public HDict ToHDict()
-    {
-        var dict = new HDict();
-        dict.SetDictTuple("class_ids", new HTuple(Ids!.ToArray()));
-        dict.SetDictTuple("class_names", new HTuple(Names!.ToArray()));
-        dict.SetDictTuple("image_dir", new HTuple(ImageDir));
-        var tuple = new HTuple();
-
-        if (Samples != null)
-            foreach (var hDict in Samples.Select(sample => sample.ToHDict()))
-                tuple.Append(hDict);
-
-        dict.SetDictTuple("samples", tuple);
-
-        return dict;
-    }
-
     public IEnumerable<string> Errors()
     {
         var errorList = new List<string>();
@@ -94,6 +77,23 @@ public class HalconOrientedObjectDetectionDict
         return errorList;
     }
 
+    public HDict ToHDict()
+    {
+        var dict = new HDict();
+        dict.SetDictTuple("class_ids", new HTuple(Ids!.ToArray()));
+        dict.SetDictTuple("class_names", new HTuple(Names!.ToArray()));
+        dict.SetDictTuple("image_dir", new HTuple(ImageDir));
+        var tuple = new HTuple();
+
+        if (Samples != null)
+            foreach (var hDict in Samples.Select(sample => sample.ToHDict()))
+                tuple.Append(hDict);
+
+        dict.SetDictTuple("samples", tuple);
+
+        return dict;
+    }
+
     private static void 检查重复<T>(ICollection<string> errorList,
         IEnumerable<T> values,
         Func<T, string> 当重复时,
@@ -108,48 +108,12 @@ public class HalconOrientedObjectDetectionDict
                 set.Add(value);
     }
 
-    public class SampleComparer : IEqualityComparer<Sample>
-    {
-
-        public bool Equals(Sample x, Sample y)
-        {
-            if (ReferenceEquals(x, y)) return true;
-            if (ReferenceEquals(x, null)) return false;
-            if (ReferenceEquals(y, null)) return false;
-            if (x.GetType() != y.GetType()) return false;
-
-            return x.Id == y.Id &&
-                string.Equals(x.FileName,
-                    y.FileName,
-                    StringComparison.CurrentCultureIgnoreCase);
-        }
-
-        public int GetHashCode(Sample obj)
-        {
-            unchecked
-            {
-                return (obj.Id.GetHashCode() * 397) ^
-                    (obj.FileName != null
-                        ? StringComparer.CurrentCultureIgnoreCase.GetHashCode(
-                            obj.FileName)
-                        : 0);
-            }
-        }
-
-    }
-
     public class Sample
     {
 
-        public long? Id { get; set; }
-
-        public string? FileName { get; set; }
+        public List<double>? BboxCol { get; set; }
 
         public List<long>? BboxLabelId { get; set; }
-
-        public List<double>? BboxRow { get; set; }
-
-        public List<double>? BboxCol { get; set; }
 
         public List<double>? BboxLength1 { get; set; }
 
@@ -157,20 +121,11 @@ public class HalconOrientedObjectDetectionDict
 
         public List<double>? BboxPhi { get; set; }
 
-        public HDict ToHDict()
-        {
-            var dict = new HDict();
-            dict.SetDictTuple("image_id", new HTuple(Id));
-            dict.SetDictTuple("image_file_name", new HTuple(FileName));
-            dict.SetDictTuple("bbox_label_id", new HTuple(BboxLabelId?.ToArray()));
-            dict.SetDictTuple("bbox_row", new HTuple(BboxRow?.ToArray()));
-            dict.SetDictTuple("bbox_col", new HTuple(BboxCol?.ToArray()));
-            dict.SetDictTuple("bbox_length1", new HTuple(BboxLength1?.ToArray()));
-            dict.SetDictTuple("bbox_length2", new HTuple(BboxLength2?.ToArray()));
-            dict.SetDictTuple("bbox_phi", new HTuple(BboxPhi?.ToArray()));
+        public List<double>? BboxRow { get; set; }
 
-            return dict;
-        }
+        public string? FileName { get; set; }
+
+        public long? Id { get; set; }
 
         public IEnumerable<string> Errors()
         {
@@ -210,6 +165,51 @@ public class HalconOrientedObjectDetectionDict
                 errors.Add($"{nameof(BboxLabelId)}与{nameof(BboxPhi)}数量不一致");
 
             return errors;
+        }
+
+        public HDict ToHDict()
+        {
+            var dict = new HDict();
+            dict.SetDictTuple("image_id", new HTuple(Id));
+            dict.SetDictTuple("image_file_name", new HTuple(FileName));
+            dict.SetDictTuple("bbox_label_id", new HTuple(BboxLabelId?.ToArray()));
+            dict.SetDictTuple("bbox_row", new HTuple(BboxRow?.ToArray()));
+            dict.SetDictTuple("bbox_col", new HTuple(BboxCol?.ToArray()));
+            dict.SetDictTuple("bbox_length1", new HTuple(BboxLength1?.ToArray()));
+            dict.SetDictTuple("bbox_length2", new HTuple(BboxLength2?.ToArray()));
+            dict.SetDictTuple("bbox_phi", new HTuple(BboxPhi?.ToArray()));
+
+            return dict;
+        }
+
+    }
+
+    public class SampleComparer : IEqualityComparer<Sample>
+    {
+
+        public bool Equals(Sample x, Sample y)
+        {
+            if (ReferenceEquals(x, y)) return true;
+            if (ReferenceEquals(x, null)) return false;
+            if (ReferenceEquals(y, null)) return false;
+            if (x.GetType() != y.GetType()) return false;
+
+            return x.Id == y.Id &&
+                string.Equals(x.FileName,
+                    y.FileName,
+                    StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        public int GetHashCode(Sample obj)
+        {
+            unchecked
+            {
+                return (obj.Id.GetHashCode() * 397) ^
+                    (obj.FileName != null
+                        ? StringComparer.CurrentCultureIgnoreCase.GetHashCode(
+                            obj.FileName)
+                        : 0);
+            }
         }
 
     }

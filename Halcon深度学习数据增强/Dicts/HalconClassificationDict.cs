@@ -11,28 +11,11 @@ public class HalconClassificationDict
 
     public List<long>? Ids { get; set; }
 
-    public List<string>? Names { get; set; }
-
     public string? ImageDir { get; set; }
 
+    public List<string>? Names { get; set; }
+
     public List<Sample>? Samples { get; set; }
-
-    public HDict ToHDict()
-    {
-        var dict = new HDict();
-        dict.SetDictTuple("class_ids", new HTuple(Ids!.ToArray()));
-        dict.SetDictTuple("class_names", new HTuple(Names!.ToArray()));
-        dict.SetDictTuple("image_dir", new HTuple(ImageDir));
-        var tuple = new HTuple();
-
-        if (Samples != null)
-            foreach (var hDict in Samples.Select(sample => sample.ToHDict()))
-                tuple.Append(hDict);
-
-        dict.SetDictTuple("samples", tuple);
-
-        return dict;
-    }
 
     public static HalconClassificationDict FromHDict(HDict dict)
     {
@@ -89,6 +72,23 @@ public class HalconClassificationDict
         return errorList;
     }
 
+    public HDict ToHDict()
+    {
+        var dict = new HDict();
+        dict.SetDictTuple("class_ids", new HTuple(Ids!.ToArray()));
+        dict.SetDictTuple("class_names", new HTuple(Names!.ToArray()));
+        dict.SetDictTuple("image_dir", new HTuple(ImageDir));
+        var tuple = new HTuple();
+
+        if (Samples != null)
+            foreach (var hDict in Samples.Select(sample => sample.ToHDict()))
+                tuple.Append(hDict);
+
+        dict.SetDictTuple("samples", tuple);
+
+        return dict;
+    }
+
     private static void 检查重复<T>(ICollection<string> errorList,
         IEnumerable<T> values,
         Func<T, string> 当重复时,
@@ -101,6 +101,37 @@ public class HalconClassificationDict
                 errorList.Add(当重复时(value));
             else
                 set.Add(value);
+    }
+
+    public class Sample
+    {
+
+        public string? FileName { get; set; }
+
+        public long? Id { get; set; }
+
+        public long? LabelId { get; set; }
+
+        public IEnumerable<string> Errors()
+        {
+            var errors = new List<string>();
+            if (Id == null) errors.Add($"{nameof(Id)}为空");
+            if (FileName.IsNullOrWhiteSpace()) errors.Add($"{nameof(FileName)}为空");
+            if (LabelId == null) errors.Add($"{nameof(LabelId)}为空");
+
+            return errors;
+        }
+
+        public HDict ToHDict()
+        {
+            var dict = new HDict();
+            dict.SetDictTuple("image_id", new HTuple(Id));
+            dict.SetDictTuple("image_file_name", new HTuple(FileName));
+            dict.SetDictTuple("image_label_id", new HTuple(LabelId));
+
+            return dict;
+        }
+
     }
 
     public class SampleComparer : IEqualityComparer<Sample>
@@ -129,37 +160,6 @@ public class HalconClassificationDict
                             obj.FileName)
                         : 0);
             }
-        }
-
-    }
-
-    public class Sample
-    {
-
-        public long? Id { get; set; }
-
-        public string? FileName { get; set; }
-
-        public long? LabelId { get; set; }
-
-        public HDict ToHDict()
-        {
-            var dict = new HDict();
-            dict.SetDictTuple("image_id", new HTuple(Id));
-            dict.SetDictTuple("image_file_name", new HTuple(FileName));
-            dict.SetDictTuple("image_label_id", new HTuple(LabelId));
-
-            return dict;
-        }
-
-        public IEnumerable<string> Errors()
-        {
-            var errors = new List<string>();
-            if (Id == null) errors.Add($"{nameof(Id)}为空");
-            if (FileName.IsNullOrWhiteSpace()) errors.Add($"{nameof(FileName)}为空");
-            if (LabelId == null) errors.Add($"{nameof(LabelId)}为空");
-
-            return errors;
         }
 
     }

@@ -9,42 +9,17 @@ namespace Halcon深度学习数据增强.Dicts;
 public class HalconSemanticSegmentationDict
 {
 
+    public List<HDict?>? ClassCustomData { get; set; }
+
     public List<long>? Ids { get; set; }
 
-    public List<string>? Names { get; set; }
-
     public string? ImageDir { get; set; }
+
+    public List<string>? Names { get; set; }
 
     public List<Sample>? Samples { get; set; }
 
     public string? SegmentationDir { get; set; }
-
-    public List<HDict?>? ClassCustomData { get; set; }
-
-    public HDict ToHDict()
-    {
-        var dict = new HDict();
-        dict.SetDictTuple("class_ids", new HTuple(Ids!.ToArray()));
-        dict.SetDictTuple("class_names", new HTuple(Names!.ToArray()));
-        dict.SetDictTuple("image_dir", new HTuple(ImageDir));
-        var customDataHTuple = new HTuple();
-
-        foreach (var item in ClassCustomData!)
-            if (item != null)
-                customDataHTuple.Append(item);
-
-        dict.SetDictTuple("class_custom_data", customDataHTuple);
-        dict.SetDictTuple("segmentation_dir", new HTuple(SegmentationDir));
-        var tuple = new HTuple();
-
-        if (Samples != null)
-            foreach (var hDict in Samples.Select(sample => sample.ToHDict()))
-                tuple.Append(hDict);
-
-        dict.SetDictTuple("samples", tuple);
-
-        return dict;
-    }
 
     public static HalconSemanticSegmentationDict FromHDict(HDict dict)
     {
@@ -111,6 +86,31 @@ public class HalconSemanticSegmentationDict
         return errorList;
     }
 
+    public HDict ToHDict()
+    {
+        var dict = new HDict();
+        dict.SetDictTuple("class_ids", new HTuple(Ids!.ToArray()));
+        dict.SetDictTuple("class_names", new HTuple(Names!.ToArray()));
+        dict.SetDictTuple("image_dir", new HTuple(ImageDir));
+        var customDataHTuple = new HTuple();
+
+        foreach (var item in ClassCustomData!)
+            if (item != null)
+                customDataHTuple.Append(item);
+
+        dict.SetDictTuple("class_custom_data", customDataHTuple);
+        dict.SetDictTuple("segmentation_dir", new HTuple(SegmentationDir));
+        var tuple = new HTuple();
+
+        if (Samples != null)
+            foreach (var hDict in Samples.Select(sample => sample.ToHDict()))
+                tuple.Append(hDict);
+
+        dict.SetDictTuple("samples", tuple);
+
+        return dict;
+    }
+
     private static void 检查重复<T>(ICollection<string> errorList,
         IEnumerable<T> values,
         Func<T, string> 当重复时,
@@ -129,6 +129,41 @@ public class HalconSemanticSegmentationDict
     {
 
         public const string IsBgClass = "is_bg_class";
+
+    }
+
+    public class Sample
+    {
+
+        public string? FileName { get; set; }
+
+        public long? Id { get; set; }
+
+        public string? SegmentationFileName { get; set; }
+
+        public IEnumerable<string> Errors()
+        {
+            var errors = new List<string>();
+            if (Id == null) errors.Add($"{nameof(Id)}为空");
+            if (FileName.IsNullOrWhiteSpace()) errors.Add($"{nameof(FileName)}为空");
+
+            if (SegmentationFileName.IsNullOrWhiteSpace())
+                errors.Add($"{nameof(SegmentationFileName)}为空");
+
+            return errors;
+        }
+
+        public HDict ToHDict()
+        {
+            var dict = new HDict();
+            dict.SetDictTuple("image_id", new HTuple(Id));
+            dict.SetDictTuple("image_file_name", new HTuple(FileName));
+
+            dict.SetDictTuple("segmentation_file_name",
+                new HTuple(SegmentationFileName));
+
+            return dict;
+        }
 
     }
 
@@ -158,41 +193,6 @@ public class HalconSemanticSegmentationDict
                             obj.FileName)
                         : 0);
             }
-        }
-
-    }
-
-    public class Sample
-    {
-
-        public long? Id { get; set; }
-
-        public string? FileName { get; set; }
-
-        public string? SegmentationFileName { get; set; }
-
-        public HDict ToHDict()
-        {
-            var dict = new HDict();
-            dict.SetDictTuple("image_id", new HTuple(Id));
-            dict.SetDictTuple("image_file_name", new HTuple(FileName));
-
-            dict.SetDictTuple("segmentation_file_name",
-                new HTuple(SegmentationFileName));
-
-            return dict;
-        }
-
-        public IEnumerable<string> Errors()
-        {
-            var errors = new List<string>();
-            if (Id == null) errors.Add($"{nameof(Id)}为空");
-            if (FileName.IsNullOrWhiteSpace()) errors.Add($"{nameof(FileName)}为空");
-
-            if (SegmentationFileName.IsNullOrWhiteSpace())
-                errors.Add($"{nameof(SegmentationFileName)}为空");
-
-            return errors;
         }
 
     }

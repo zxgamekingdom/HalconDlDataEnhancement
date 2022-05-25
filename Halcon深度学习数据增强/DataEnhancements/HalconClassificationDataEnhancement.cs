@@ -10,7 +10,7 @@ using Halcon深度学习数据增强.Dicts;
 namespace Halcon深度学习数据增强.DataEnhancements;
 
 /// <summary>
-///     Halcon分类数据增强
+/// Halcon分类数据增强
 /// </summary>
 public class HalconClassificationDataEnhancement
 {
@@ -22,6 +22,23 @@ public class HalconClassificationDataEnhancement
     private HalconClassificationDict? _sourceDict;
 
     private IEnumerable<SourceImageInfo> _sourceImageInfos = null!;
+
+    public HalconClassificationDataEnhancement DataEnhancement(
+        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
+    {
+        数据源不能未加载();
+        var infos = new List<DataEnhancementImageInfo>(100);
+
+        foreach (var sourceImageInfo in _sourceImageInfos)
+        {
+            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
+            infos.AddRange(dataEnhancementImageInfo);
+        }
+
+        _dataEnhancementImageInfos = infos;
+
+        return this;
+    }
 
     public HalconClassificationDataEnhancement LoadSouce(HDict hDict)
     {
@@ -36,15 +53,16 @@ public class HalconClassificationDataEnhancement
         return this;
     }
 
-    private IEnumerable<SourceImageInfo> 解析数据()
+    public HalconClassificationDataEnhancement LoadSourceFromPath(string dictPath,
+        HTuple? genParamName = default,
+        HTuple? genParamValue = default)
     {
-        var samples = _sourceDict!.Samples!;
+        数据源不能已加载();
+        genParamName ??= new HTuple();
+        genParamValue ??= new HTuple();
+        var hDict = new HDict(dictPath, genParamName, genParamValue);
 
-        return samples.Select(sample => new SourceImageInfo(_sourceDict!.ImageDir!,
-                sample.Id!.Value,
-                sample.FileName!,
-                sample.LabelId!.Value))
-            .ToArray();
+        return LoadSouce(hDict);
     }
 
     public Task Save(string? newImageDir = default,
@@ -111,28 +129,6 @@ public class HalconClassificationDataEnhancement
             TaskCreationOptions.LongRunning);
     }
 
-    public HalconClassificationDataEnhancement DataEnhancement(
-        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
-    {
-        数据源不能未加载();
-        var infos = new List<DataEnhancementImageInfo>(100);
-
-        foreach (var sourceImageInfo in _sourceImageInfos)
-        {
-            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
-            infos.AddRange(dataEnhancementImageInfo);
-        }
-
-        _dataEnhancementImageInfos = infos;
-
-        return this;
-    }
-
-    private void 数据源不能未加载()
-    {
-        if (_sourceDict == null) throw new Exception("数据源未加载");
-    }
-
     public HalconClassificationDataEnhancement SimpleDataEnhancement(简单增强委托 func)
     {
         数据源不能未加载();
@@ -163,33 +159,37 @@ public class HalconClassificationDataEnhancement
         return this;
     }
 
+    private IEnumerable<SourceImageInfo> 解析数据()
+    {
+        var samples = _sourceDict!.Samples!;
+
+        return samples.Select(sample => new SourceImageInfo(_sourceDict!.ImageDir!,
+                sample.Id!.Value,
+                sample.FileName!,
+                sample.LabelId!.Value))
+            .ToArray();
+    }
+
+    private void 数据源不能未加载()
+    {
+        if (_sourceDict == null) throw new Exception("数据源未加载");
+    }
+
     private void 数据源不能已加载()
     {
         if (_sourceDict != null) throw new Exception("数据已经加载");
     }
 
-    public HalconClassificationDataEnhancement LoadSourceFromPath(string dictPath,
-        HTuple? genParamName = default,
-        HTuple? genParamValue = default)
-    {
-        数据源不能已加载();
-        genParamName ??= new HTuple();
-        genParamValue ??= new HTuple();
-        var hDict = new HDict(dictPath, genParamName, genParamValue);
-
-        return LoadSouce(hDict);
-    }
-
     public class DataEnhancementImageInfo
     {
-
-        public long LabelId { get; set; }
 
         public string FileName { get; set; } = null!;
 
         public long Id { get; set; }
 
         public HImage Image { get; set; } = null!;
+
+        public long LabelId { get; set; }
 
     }
 
@@ -206,8 +206,6 @@ public class HalconClassificationDataEnhancement
             Image = new HImage(imagePath);
         }
 
-        public long LabelId { get; }
-
         public string FileName { get; }
 
         public long Id { get; }
@@ -215,6 +213,8 @@ public class HalconClassificationDataEnhancement
         public HImage Image { get; }
 
         public string ImageDir { get; }
+
+        public long LabelId { get; }
 
     }
 

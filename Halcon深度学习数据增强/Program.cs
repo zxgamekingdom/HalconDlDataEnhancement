@@ -6,9 +6,6 @@ public static class Program
 {
 
     [STAThread]
-    public static void Main(string[] args)
-    {
-        Console.ReadLine();
-    }
+    public static void Main(string[] args) { Console.ReadLine(); }
 
 }

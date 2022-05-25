@@ -12,9 +12,9 @@ namespace Halcon深度学习数据增强.DataEnhancements;
 public class HalconOrientedObjectDetectionDataEnhancement
 {
 
-    public delegate ( HImage Image, List<long> BboxLabelId, List<double> BboxRow,
+    public delegate (HImage Image, List<long> BboxLabelId, List<double> BboxRow,
         List<double> BboxCol, List<double> BboxLength1, List<double> BboxLength2,
-        List<double> BboxPhi )[] 简单增强委托(HImage image,
+        List<double> BboxPhi)[] 简单增强委托(HImage image,
             List<long>? bboxLabelId,
             List<double>? bboxRow,
             List<double>? bboxCol,
@@ -27,6 +27,23 @@ public class HalconOrientedObjectDetectionDataEnhancement
     private HalconOrientedObjectDetectionDict? _sourceDict;
 
     private IEnumerable<SourceImageInfo> _sourceImageInfos = null!;
+
+    public HalconOrientedObjectDetectionDataEnhancement DataEnhancement(
+        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
+    {
+        数据源不能未加载();
+        var infos = new List<DataEnhancementImageInfo>(100);
+
+        foreach (var sourceImageInfo in _sourceImageInfos)
+        {
+            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
+            infos.AddRange(dataEnhancementImageInfo);
+        }
+
+        _dataEnhancementImageInfos = infos;
+
+        return this;
+    }
 
     public HalconOrientedObjectDetectionDataEnhancement LoadSouce(HDict hDict)
     {
@@ -41,20 +58,17 @@ public class HalconOrientedObjectDetectionDataEnhancement
         return this;
     }
 
-    private IEnumerable<SourceImageInfo> 解析数据()
+    public HalconOrientedObjectDetectionDataEnhancement LoadSourceFromPath(
+        string dictPath,
+        HTuple? genParamName = default,
+        HTuple? genParamValue = default)
     {
-        var samples = _sourceDict!.Samples!;
+        数据源不能已加载();
+        genParamName ??= new HTuple();
+        genParamValue ??= new HTuple();
+        var hDict = new HDict(dictPath, genParamName, genParamValue);
 
-        return samples.Select(sample => new SourceImageInfo(_sourceDict.ImageDir!,
-                sample.Id,
-                sample.FileName,
-                sample.BboxLabelId,
-                sample.BboxRow,
-                sample.BboxCol,
-                sample.BboxLength1,
-                sample.BboxLength2,
-                sample.BboxPhi))
-            .ToArray();
+        return LoadSouce(hDict);
     }
 
     public Task Save(string? newImageDir = default,
@@ -126,28 +140,6 @@ public class HalconOrientedObjectDetectionDataEnhancement
             TaskCreationOptions.LongRunning);
     }
 
-    public HalconOrientedObjectDetectionDataEnhancement DataEnhancement(
-        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
-    {
-        数据源不能未加载();
-        var infos = new List<DataEnhancementImageInfo>(100);
-
-        foreach (var sourceImageInfo in _sourceImageInfos)
-        {
-            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
-            infos.AddRange(dataEnhancementImageInfo);
-        }
-
-        _dataEnhancementImageInfos = infos;
-
-        return this;
-    }
-
-    private void 数据源不能未加载()
-    {
-        if (_sourceDict == null) throw new Exception("数据源未加载");
-    }
-
     public HalconOrientedObjectDetectionDataEnhancement SimpleDataEnhancement(
         简单增强委托 func)
     {
@@ -190,42 +182,50 @@ public class HalconOrientedObjectDetectionDataEnhancement
         return this;
     }
 
+    private IEnumerable<SourceImageInfo> 解析数据()
+    {
+        var samples = _sourceDict!.Samples!;
+
+        return samples.Select(sample => new SourceImageInfo(_sourceDict.ImageDir!,
+                sample.Id,
+                sample.FileName,
+                sample.BboxLabelId,
+                sample.BboxRow,
+                sample.BboxCol,
+                sample.BboxLength1,
+                sample.BboxLength2,
+                sample.BboxPhi))
+            .ToArray();
+    }
+
+    private void 数据源不能未加载()
+    {
+        if (_sourceDict == null) throw new Exception("数据源未加载");
+    }
+
     private void 数据源不能已加载()
     {
         if (_sourceDict != null) throw new Exception("数据已经加载");
     }
 
-    public HalconOrientedObjectDetectionDataEnhancement LoadSourceFromPath(
-        string dictPath,
-        HTuple? genParamName = default,
-        HTuple? genParamValue = default)
-    {
-        数据源不能已加载();
-        genParamName ??= new HTuple();
-        genParamValue ??= new HTuple();
-        var hDict = new HDict(dictPath, genParamName, genParamValue);
-
-        return LoadSouce(hDict);
-    }
-
     public class DataEnhancementImageInfo
     {
 
-        public long? Id { get; set; }
-
-        public string? FileName { get; set; }
+        public List<double>? BboxCol { get; set; }
 
         public List<long>? BboxLabelId { get; set; }
-
-        public List<double>? BboxRow { get; set; }
-
-        public List<double>? BboxCol { get; set; }
 
         public List<double>? BboxLength1 { get; set; }
 
         public List<double>? BboxLength2 { get; set; }
 
         public List<double>? BboxPhi { get; set; }
+
+        public List<double>? BboxRow { get; set; }
+
+        public string? FileName { get; set; }
+
+        public long? Id { get; set; }
 
         public HImage Image { get; set; }
 
@@ -257,17 +257,9 @@ public class HalconOrientedObjectDetectionDataEnhancement
             Image = new HImage(imagePath);
         }
 
-        public string ImageDir { get; }
-
-        public long? Id { get; }
-
-        public string? FileName { get; }
+        public List<double>? BboxCol { get; }
 
         public List<long>? BboxLabelId { get; }
-
-        public List<double>? BboxRow { get; }
-
-        public List<double>? BboxCol { get; }
 
         public List<double>? BboxLength1 { get; }
 
@@ -275,7 +267,15 @@ public class HalconOrientedObjectDetectionDataEnhancement
 
         public List<double>? BboxPhi { get; }
 
+        public List<double>? BboxRow { get; }
+
+        public string? FileName { get; }
+
+        public long? Id { get; }
+
         public HImage Image { get; }
+
+        public string ImageDir { get; }
 
     }
 

@@ -11,28 +11,11 @@ public class HalconInstanceSegmentationDict
 
     public List<long>? Ids { get; set; }
 
-    public List<string>? Names { get; set; }
-
     public string? ImageDir { get; set; }
 
+    public List<string>? Names { get; set; }
+
     public List<Sample>? Samples { get; set; }
-
-    public HDict ToHDict()
-    {
-        var dict = new HDict();
-        dict.SetDictTuple("class_ids", new HTuple(Ids!.ToArray()));
-        dict.SetDictTuple("class_names", new HTuple(Names!.ToArray()));
-        dict.SetDictTuple("image_dir", new HTuple(ImageDir));
-        var tuple = new HTuple();
-
-        if (Samples != null)
-            foreach (var hDict in Samples.Select(sample => sample.ToHDict()))
-                tuple.Append(hDict);
-
-        dict.SetDictTuple("samples", tuple);
-
-        return dict;
-    }
 
     public static HalconInstanceSegmentationDict FromHDict(HDict dict)
     {
@@ -72,25 +55,6 @@ public class HalconInstanceSegmentationDict
         return buff;
     }
 
-    private static List<HRegion>? HRegionListFromHDict(HDict dict, string key)
-    {
-        var hObject = dict.GetDictObject(key);
-        var countObj = hObject.CountObj();
-
-        if (countObj == 0) return null;
-
-        var regions = new List<HRegion>(countObj);
-
-        for (var i = 1; i <= countObj; i++)
-        {
-            var o = hObject[i];
-            var hRegion = new HRegion(o);
-            regions.Add(hRegion);
-        }
-
-        return regions;
-    }
-
     public IEnumerable<string> Errors()
     {
         var errorList = new List<string>();
@@ -113,6 +77,42 @@ public class HalconInstanceSegmentationDict
         return errorList;
     }
 
+    public HDict ToHDict()
+    {
+        var dict = new HDict();
+        dict.SetDictTuple("class_ids", new HTuple(Ids!.ToArray()));
+        dict.SetDictTuple("class_names", new HTuple(Names!.ToArray()));
+        dict.SetDictTuple("image_dir", new HTuple(ImageDir));
+        var tuple = new HTuple();
+
+        if (Samples != null)
+            foreach (var hDict in Samples.Select(sample => sample.ToHDict()))
+                tuple.Append(hDict);
+
+        dict.SetDictTuple("samples", tuple);
+
+        return dict;
+    }
+
+    private static List<HRegion>? HRegionListFromHDict(HDict dict, string key)
+    {
+        var hObject = dict.GetDictObject(key);
+        var countObj = hObject.CountObj();
+
+        if (countObj == 0) return null;
+
+        var regions = new List<HRegion>(countObj);
+
+        for (var i = 1; i <= countObj; i++)
+        {
+            var o = hObject[i];
+            var hRegion = new HRegion(o);
+            regions.Add(hRegion);
+        }
+
+        return regions;
+    }
+
     private static void 检查重复<T>(ICollection<string> errorList,
         IEnumerable<T> values,
         Func<T, string> 当重复时,
@@ -127,78 +127,24 @@ public class HalconInstanceSegmentationDict
                 set.Add(value);
     }
 
-    public class SampleComparer : IEqualityComparer<Sample>
-    {
-
-        public bool Equals(Sample x, Sample y)
-        {
-            if (ReferenceEquals(x, y)) return true;
-            if (ReferenceEquals(x, null)) return false;
-            if (ReferenceEquals(y, null)) return false;
-            if (x.GetType() != y.GetType()) return false;
-
-            return x.Id == y.Id &&
-                string.Equals(x.FileName,
-                    y.FileName,
-                    StringComparison.CurrentCultureIgnoreCase);
-        }
-
-        public int GetHashCode(Sample obj)
-        {
-            unchecked
-            {
-                return (obj.Id.GetHashCode() * 397) ^
-                    (obj.FileName != null
-                        ? StringComparer.CurrentCultureIgnoreCase.GetHashCode(
-                            obj.FileName)
-                        : 0);
-            }
-        }
-
-    }
-
     public class Sample
     {
 
-        public long? Id { get; set; }
+        public List<double>? BboxCol1 { get; set; }
 
-        public string? FileName { get; set; }
-
-        public List<HRegion>? Mask { get; set; }
+        public List<double>? BboxCol2 { get; set; }
 
         public List<long>? BboxLabelId { get; set; }
 
         public List<double>? BboxRow1 { get; set; }
 
-        public List<double>? BboxCol1 { get; set; }
-
         public List<double>? BboxRow2 { get; set; }
 
-        public List<double>? BboxCol2 { get; set; }
+        public string? FileName { get; set; }
 
-        public HDict ToHDict()
-        {
-            var dict = new HDict();
-            dict.SetDictTuple("image_id", new HTuple(Id));
-            dict.SetDictTuple("image_file_name", new HTuple(FileName));
-            HRegion? m = default;
+        public long? Id { get; set; }
 
-            if (Mask != null)
-            {
-                m ??= new HRegion();
-                m.GenEmptyObj();
-                foreach (var hRegion in Mask) m = m.ConcatObj(hRegion);
-            }
-
-            if (m != null) dict.SetDictObject(m, "mask");
-            dict.SetDictTuple("bbox_label_id", new HTuple(BboxLabelId?.ToArray()));
-            dict.SetDictTuple("bbox_row1", new HTuple(BboxRow1?.ToArray()));
-            dict.SetDictTuple("bbox_col1", new HTuple(BboxCol1?.ToArray()));
-            dict.SetDictTuple("bbox_row2", new HTuple(BboxRow2?.ToArray()));
-            dict.SetDictTuple("bbox_col2", new HTuple(BboxCol2?.ToArray()));
-
-            return dict;
-        }
+        public List<HRegion>? Mask { get; set; }
 
         public IEnumerable<string> Errors()
         {
@@ -228,6 +174,60 @@ public class HalconInstanceSegmentationDict
                 errors.Add($"{nameof(Mask)}与{nameof(BboxCol2)}数量不一致");
 
             return errors;
+        }
+
+        public HDict ToHDict()
+        {
+            var dict = new HDict();
+            dict.SetDictTuple("image_id", new HTuple(Id));
+            dict.SetDictTuple("image_file_name", new HTuple(FileName));
+            HRegion? m = default;
+
+            if (Mask != null)
+            {
+                m ??= new HRegion();
+                m.GenEmptyObj();
+                foreach (var hRegion in Mask) m = m.ConcatObj(hRegion);
+            }
+
+            if (m != null) dict.SetDictObject(m, "mask");
+            dict.SetDictTuple("bbox_label_id", new HTuple(BboxLabelId?.ToArray()));
+            dict.SetDictTuple("bbox_row1", new HTuple(BboxRow1?.ToArray()));
+            dict.SetDictTuple("bbox_col1", new HTuple(BboxCol1?.ToArray()));
+            dict.SetDictTuple("bbox_row2", new HTuple(BboxRow2?.ToArray()));
+            dict.SetDictTuple("bbox_col2", new HTuple(BboxCol2?.ToArray()));
+
+            return dict;
+        }
+
+    }
+
+    public class SampleComparer : IEqualityComparer<Sample>
+    {
+
+        public bool Equals(Sample x, Sample y)
+        {
+            if (ReferenceEquals(x, y)) return true;
+            if (ReferenceEquals(x, null)) return false;
+            if (ReferenceEquals(y, null)) return false;
+            if (x.GetType() != y.GetType()) return false;
+
+            return x.Id == y.Id &&
+                string.Equals(x.FileName,
+                    y.FileName,
+                    StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        public int GetHashCode(Sample obj)
+        {
+            unchecked
+            {
+                return (obj.Id.GetHashCode() * 397) ^
+                    (obj.FileName != null
+                        ? StringComparer.CurrentCultureIgnoreCase.GetHashCode(
+                            obj.FileName)
+                        : 0);
+            }
         }
 
     }
