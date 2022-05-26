@@ -5,11 +5,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HalconDotNet;
+using Halcon深度学习数据增强.DataEnhancements.Abstracts;
 using Halcon深度学习数据增强.Dicts;
 
 namespace Halcon深度学习数据增强.DataEnhancements;
 
-public class HalconOrientedObjectDetectionDataEnhancement
+public class HalconOrientedObjectDetectionDataEnhancement : IHalconDataEnhancement<
+    HalconOrientedObjectDetectionDataEnhancement>
 {
 
     public delegate (HImage Image, List<long> BboxLabelId, List<double> BboxRow,
@@ -28,47 +30,18 @@ public class HalconOrientedObjectDetectionDataEnhancement
 
     private IEnumerable<SourceImageInfo> _sourceImageInfos = null!;
 
-    public HalconOrientedObjectDetectionDataEnhancement DataEnhancement(
-        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
-    {
-        数据源不能未加载();
-        var infos = new List<DataEnhancementImageInfo>(100);
-
-        foreach (var sourceImageInfo in _sourceImageInfos)
-        {
-            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
-            infos.AddRange(dataEnhancementImageInfo);
-        }
-
-        _dataEnhancementImageInfos = infos;
-
-        return this;
-    }
-
     public HalconOrientedObjectDetectionDataEnhancement LoadSouce(HDict hDict)
     {
         数据源不能已加载();
-        _sourceDict = HalconOrientedObjectDetectionDict.FromHDict(hDict);
+        _sourceDict = new HalconOrientedObjectDetectionDict();
+        _sourceDict.FromHDict(hDict);
         var errors = _sourceDict.Errors().ToArray();
 
-        if (errors.Any()) throw new Exception(string.Join("\n", errors));
+        if (errors.Length > 0) throw new Exception(string.Join("\n", errors));
 
         _sourceImageInfos = 解析数据();
 
         return this;
-    }
-
-    public HalconOrientedObjectDetectionDataEnhancement LoadSourceFromPath(
-        string dictPath,
-        HTuple? genParamName = default,
-        HTuple? genParamValue = default)
-    {
-        数据源不能已加载();
-        genParamName ??= new HTuple();
-        genParamValue ??= new HTuple();
-        var hDict = new HDict(dictPath, genParamName, genParamValue);
-
-        return LoadSouce(hDict);
     }
 
     public Task Save(string? newImageDir = default,
@@ -140,6 +113,23 @@ public class HalconOrientedObjectDetectionDataEnhancement
             TaskCreationOptions.LongRunning);
     }
 
+    public HalconOrientedObjectDetectionDataEnhancement DataEnhancement(
+        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
+    {
+        数据源不能未加载();
+        var infos = new List<DataEnhancementImageInfo>(100);
+
+        foreach (var sourceImageInfo in _sourceImageInfos)
+        {
+            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
+            infos.AddRange(dataEnhancementImageInfo);
+        }
+
+        _dataEnhancementImageInfos = infos;
+
+        return this;
+    }
+
     public HalconOrientedObjectDetectionDataEnhancement SimpleDataEnhancement(
         简单增强委托 func)
     {
@@ -150,29 +140,31 @@ public class HalconOrientedObjectDetectionDataEnhancement
         foreach (var sourceImageInfo in _sourceImageInfos)
         {
             var results = func.Invoke(sourceImageInfo.Image,
-                sourceImageInfo.BboxLabelId!,
-                sourceImageInfo.BboxRow!,
-                sourceImageInfo.BboxCol!,
-                sourceImageInfo.BboxLength1!,
-                sourceImageInfo.BboxLength2!,
-                sourceImageInfo.BboxPhi!);
+                sourceImageInfo.BboxLabelId,
+                sourceImageInfo.BboxRow,
+                sourceImageInfo.BboxCol,
+                sourceImageInfo.BboxLength1,
+                sourceImageInfo.BboxLength2,
+                sourceImageInfo.BboxPhi);
 
-            foreach (var r in results)
+            foreach (
+                var (Image, BboxLabelId, BboxRow, BboxCol, BboxLength1, BboxLength2,
+                    BboxPhi) in results)
             {
                 count++;
 
                 infos.Add(new DataEnhancementImageInfo
                 {
-                    Image = r.Image,
+                    Image = Image,
                     Id = count,
                     FileName =
                         $"{Path.GetFileNameWithoutExtension(sourceImageInfo.FileName)}_{count}.png",
-                    BboxLabelId = r.BboxLabelId,
-                    BboxRow = r.BboxRow,
-                    BboxCol = r.BboxCol,
-                    BboxLength1 = r.BboxLength1,
-                    BboxLength2 = r.BboxLength2,
-                    BboxPhi = r.BboxPhi
+                    BboxLabelId = BboxLabelId,
+                    BboxRow = BboxRow,
+                    BboxCol = BboxCol,
+                    BboxLength1 = BboxLength1,
+                    BboxLength2 = BboxLength2,
+                    BboxPhi = BboxPhi
                 });
             }
         }
@@ -187,14 +179,14 @@ public class HalconOrientedObjectDetectionDataEnhancement
         var samples = _sourceDict!.Samples!;
 
         return samples.Select(sample => new SourceImageInfo(_sourceDict.ImageDir!,
-                sample.Id,
-                sample.FileName,
-                sample.BboxLabelId,
-                sample.BboxRow,
-                sample.BboxCol,
-                sample.BboxLength1,
-                sample.BboxLength2,
-                sample.BboxPhi))
+                sample.Id!.Value,
+                sample.FileName!,
+                sample.BboxLabelId!,
+                sample.BboxRow!,
+                sample.BboxCol!,
+                sample.BboxLength1!,
+                sample.BboxLength2!,
+                sample.BboxPhi!))
             .ToArray();
     }
 
@@ -208,41 +200,58 @@ public class HalconOrientedObjectDetectionDataEnhancement
         if (_sourceDict != null) throw new Exception("数据已经加载");
     }
 
-    public class DataEnhancementImageInfo
+    public interface IImageInfo : IDataEnhancementImageInfo
     {
 
-        public List<double>? BboxCol { get; set; }
+        public List<double> BboxCol { get; }
 
-        public List<long>? BboxLabelId { get; set; }
+        public List<long> BboxLabelId { get; }
 
-        public List<double>? BboxLength1 { get; set; }
+        public List<double> BboxLength1 { get; }
 
-        public List<double>? BboxLength2 { get; set; }
+        public List<double> BboxLength2 { get; }
 
-        public List<double>? BboxPhi { get; set; }
+        public List<double> BboxPhi { get; }
 
-        public List<double>? BboxRow { get; set; }
-
-        public string? FileName { get; set; }
-
-        public long? Id { get; set; }
-
-        public HImage Image { get; set; }
+        public List<double> BboxRow { get; }
 
     }
 
-    public class SourceImageInfo
+    public class DataEnhancementImageInfo : IImageInfo
+    {
+
+        public List<double> BboxCol { get; set; } = null!;
+
+        public List<long> BboxLabelId { get; set; } = null!;
+
+        public List<double> BboxLength1 { get; set; } = null!;
+
+        public List<double> BboxLength2 { get; set; } = null!;
+
+        public List<double> BboxPhi { get; set; } = null!;
+
+        public List<double> BboxRow { get; set; } = null!;
+
+        public string FileName { get; set; } = null!;
+
+        public long Id { get; set; }
+
+        public HImage Image { get; set; } = null!;
+
+    }
+
+    public class SourceImageInfo : IImageInfo
     {
 
         public SourceImageInfo(string imageDir,
-            long? id,
-            string? fileName,
-            List<long>? bboxLabelId,
-            List<double>? bboxRow,
-            List<double>? bboxCol,
-            List<double>? bboxLength1,
-            List<double>? bboxLength2,
-            List<double>? bboxPhi)
+            long id,
+            string fileName,
+            List<long> bboxLabelId,
+            List<double> bboxRow,
+            List<double> bboxCol,
+            List<double> bboxLength1,
+            List<double> bboxLength2,
+            List<double> bboxPhi)
         {
             ImageDir = imageDir;
             Id = id;
@@ -257,25 +266,25 @@ public class HalconOrientedObjectDetectionDataEnhancement
             Image = new HImage(imagePath);
         }
 
-        public List<double>? BboxCol { get; }
+        public string ImageDir { get; }
 
-        public List<long>? BboxLabelId { get; }
+        public List<double> BboxCol { get; }
 
-        public List<double>? BboxLength1 { get; }
+        public List<long> BboxLabelId { get; }
 
-        public List<double>? BboxLength2 { get; }
+        public List<double> BboxLength1 { get; }
 
-        public List<double>? BboxPhi { get; }
+        public List<double> BboxLength2 { get; }
 
-        public List<double>? BboxRow { get; }
+        public List<double> BboxPhi { get; }
 
-        public string? FileName { get; }
+        public List<double> BboxRow { get; }
 
-        public long? Id { get; }
+        public string FileName { get; }
+
+        public long Id { get; }
 
         public HImage Image { get; }
-
-        public string ImageDir { get; }
 
     }
 

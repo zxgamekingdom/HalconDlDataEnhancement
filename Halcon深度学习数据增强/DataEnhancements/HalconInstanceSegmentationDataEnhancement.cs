@@ -5,14 +5,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HalconDotNet;
+using Halcon深度学习数据增强.DataEnhancements.Abstracts;
 using Halcon深度学习数据增强.Dicts;
 
 namespace Halcon深度学习数据增强.DataEnhancements;
 
 /// <summary>
-/// Halcon实例分割数据增强
+///     Halcon实例分割数据增强
 /// </summary>
-public class HalconInstanceSegmentationDataEnhancement
+public class HalconInstanceSegmentationDataEnhancement : IHalconDataEnhancement<
+    HalconInstanceSegmentationDataEnhancement>
 {
 
     public delegate (HImage Image, List<HRegion> Mask, List<long> BboxLabelId,
@@ -31,46 +33,18 @@ public class HalconInstanceSegmentationDataEnhancement
 
     private IEnumerable<SourceImageInfo> _sourceImageInfos = null!;
 
-    public HalconInstanceSegmentationDataEnhancement DataEnhancement(
-        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
-    {
-        数据源不能未加载();
-        var infos = new List<DataEnhancementImageInfo>(100);
-
-        foreach (var sourceImageInfo in _sourceImageInfos)
-        {
-            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
-            infos.AddRange(dataEnhancementImageInfo);
-        }
-
-        _dataEnhancementImageInfos = infos;
-
-        return this;
-    }
-
     public HalconInstanceSegmentationDataEnhancement LoadSouce(HDict hDict)
     {
         数据源不能已加载();
-        _sourceDict = HalconInstanceSegmentationDict.FromHDict(hDict);
+        _sourceDict = new HalconInstanceSegmentationDict();
+        _sourceDict.FromHDict(hDict);
         var errors = _sourceDict.Errors().ToArray();
 
-        if (errors.Any()) throw new Exception(string.Join("\n", errors));
+        if (errors.Length > 0) throw new Exception(string.Join("\n", errors));
 
         _sourceImageInfos = 解析数据();
 
         return this;
-    }
-
-    public HalconInstanceSegmentationDataEnhancement LoadSourceFromPath(string dictPath,
-        HTuple? genParamName = default,
-        HTuple? genParamValue = default)
-    {
-        数据源不能已加载();
-        genParamName ??= new HTuple();
-        genParamValue ??= new HTuple();
-        var hDict = new HDict(dictPath, genParamName, genParamValue);
-
-        return LoadSouce(hDict);
     }
 
     public Task Save(string? newImageDir = default,
@@ -142,6 +116,23 @@ public class HalconInstanceSegmentationDataEnhancement
             TaskCreationOptions.LongRunning);
     }
 
+    public HalconInstanceSegmentationDataEnhancement DataEnhancement(
+        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
+    {
+        数据源不能未加载();
+        var infos = new List<DataEnhancementImageInfo>(100);
+
+        foreach (var sourceImageInfo in _sourceImageInfos)
+        {
+            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
+            infos.AddRange(dataEnhancementImageInfo);
+        }
+
+        _dataEnhancementImageInfos = infos;
+
+        return this;
+    }
+
     public HalconInstanceSegmentationDataEnhancement SimpleDataEnhancement(简单增强委托 func)
     {
         数据源不能未加载();
@@ -151,29 +142,29 @@ public class HalconInstanceSegmentationDataEnhancement
         foreach (var sourceImageInfo in _sourceImageInfos)
         {
             var results = func.Invoke(sourceImageInfo.Image,
-                sourceImageInfo.Mask!,
-                sourceImageInfo.BboxLabelId!,
-                sourceImageInfo.BboxRow1!,
-                sourceImageInfo.BboxCol1!,
-                sourceImageInfo.BboxRow2!,
-                sourceImageInfo.BboxCol2!);
+                sourceImageInfo.Mask,
+                sourceImageInfo.BboxLabelId,
+                sourceImageInfo.BboxRow1,
+                sourceImageInfo.BboxCol1,
+                sourceImageInfo.BboxRow2,
+                sourceImageInfo.BboxCol2);
 
-            foreach (var r in results)
+            foreach (var (image, mask, labelId, row1, col1, row2, col2) in results)
             {
                 count++;
 
                 infos.Add(new DataEnhancementImageInfo
                 {
-                    Image = r.Image,
+                    Image = image,
                     Id = count,
                     FileName =
                         $"{Path.GetFileNameWithoutExtension(sourceImageInfo.FileName)}_{count}.png",
-                    Mask = r.Mask,
-                    BboxLabelId = r.BboxLabelId,
-                    BboxRow1 = r.BboxRow1,
-                    BboxCol1 = r.BboxCol1,
-                    BboxRow2 = r.BboxRow2,
-                    BboxCol2 = r.BboxCol2
+                    Mask = mask,
+                    BboxLabelId = labelId,
+                    BboxRow1 = row1,
+                    BboxCol1 = col1,
+                    BboxRow2 = row2,
+                    BboxCol2 = col2
                 });
             }
         }
@@ -187,15 +178,15 @@ public class HalconInstanceSegmentationDataEnhancement
     {
         var samples = _sourceDict!.Samples!;
 
-        return samples.Select(sample => new SourceImageInfo(_sourceDict.ImageDir,
-                sample.Id,
-                sample.FileName,
-                sample.Mask,
-                sample.BboxLabelId,
-                sample.BboxRow1,
-                sample.BboxCol1,
-                sample.BboxRow2,
-                sample.BboxCol2))
+        return samples.Select(sample => new SourceImageInfo(_sourceDict.ImageDir!,
+                sample.Id!.Value,
+                sample.FileName!,
+                sample.Mask!,
+                sample.BboxLabelId!,
+                sample.BboxRow1!,
+                sample.BboxCol1!,
+                sample.BboxRow2!,
+                sample.BboxCol2!))
             .ToArray();
     }
 
@@ -209,41 +200,58 @@ public class HalconInstanceSegmentationDataEnhancement
         if (_sourceDict != null) throw new Exception("数据已经加载");
     }
 
-    public class DataEnhancementImageInfo
+    public interface IImageInfo : IDataEnhancementImageInfo
     {
 
-        public List<double>? BboxCol1 { get; set; }
+        public List<double> BboxCol1 { get; }
 
-        public List<double>? BboxCol2 { get; set; }
+        public List<double> BboxCol2 { get; }
 
-        public List<long>? BboxLabelId { get; set; }
+        public List<long> BboxLabelId { get; }
 
-        public List<double>? BboxRow1 { get; set; }
+        public List<double> BboxRow1 { get; }
 
-        public List<double>? BboxRow2 { get; set; }
+        public List<double> BboxRow2 { get; }
 
-        public string? FileName { get; set; }
-
-        public long? Id { get; set; }
-
-        public HImage Image { get; set; }
-
-        public List<HRegion>? Mask { get; set; }
+        public List<HRegion> Mask { get; }
 
     }
 
-    public class SourceImageInfo
+    public class DataEnhancementImageInfo : IImageInfo
     {
 
-        public SourceImageInfo(string? imageDir,
-            long? id,
-            string? fileName,
-            List<HRegion>? mask,
-            List<long>? bboxLabelId,
-            List<double>? bboxRow1,
-            List<double>? bboxCol1,
-            List<double>? bboxRow2,
-            List<double>? bboxCol2)
+        public long Id { get; set; }
+
+        public List<double> BboxCol1 { get; set; } = null!;
+
+        public List<double> BboxCol2 { get; set; } = null!;
+
+        public List<long> BboxLabelId { get; set; } = null!;
+
+        public List<double> BboxRow1 { get; set; } = null!;
+
+        public List<double> BboxRow2 { get; set; } = null!;
+
+        public string FileName { get; set; } = null!;
+
+        public HImage Image { get; set; } = null!;
+
+        public List<HRegion> Mask { get; set; } = null!;
+
+    }
+
+    public class SourceImageInfo : IImageInfo
+    {
+
+        public SourceImageInfo(string imageDir,
+            long id,
+            string fileName,
+            List<HRegion> mask,
+            List<long> bboxLabelId,
+            List<double> bboxRow1,
+            List<double> bboxCol1,
+            List<double> bboxRow2,
+            List<double> bboxCol2)
         {
             ImageDir = imageDir;
             Id = id;
@@ -254,29 +262,29 @@ public class HalconInstanceSegmentationDataEnhancement
             BboxCol1 = bboxCol1;
             BboxRow2 = bboxRow2;
             BboxCol2 = bboxCol2;
-            var path = Path.Combine(imageDir!, fileName!);
+            var path = Path.Combine(imageDir, fileName);
             Image = new HImage(path);
         }
 
-        public List<double>? BboxCol1 { get; }
+        public string ImageDir { get; }
 
-        public List<double>? BboxCol2 { get; }
+        public long Id { get; }
 
-        public List<long>? BboxLabelId { get; }
+        public List<double> BboxCol1 { get; }
 
-        public List<double>? BboxRow1 { get; }
+        public List<double> BboxCol2 { get; }
 
-        public List<double>? BboxRow2 { get; }
+        public List<long> BboxLabelId { get; }
 
-        public string? FileName { get; }
+        public List<double> BboxRow1 { get; }
 
-        public long? Id { get; }
+        public List<double> BboxRow2 { get; }
+
+        public string FileName { get; }
 
         public HImage Image { get; }
 
-        public string? ImageDir { get; }
-
-        public List<HRegion>? Mask { get; }
+        public List<HRegion> Mask { get; }
 
     }
 

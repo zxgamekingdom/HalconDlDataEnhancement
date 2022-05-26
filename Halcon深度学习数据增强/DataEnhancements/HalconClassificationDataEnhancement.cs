@@ -5,14 +5,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HalconDotNet;
+using Halcon深度学习数据增强.DataEnhancements.Abstracts;
 using Halcon深度学习数据增强.Dicts;
 
 namespace Halcon深度学习数据增强.DataEnhancements;
 
 /// <summary>
-/// Halcon分类数据增强
+///     Halcon分类数据增强
 /// </summary>
-public class HalconClassificationDataEnhancement
+public class
+    HalconClassificationDataEnhancement : IHalconDataEnhancement<
+        HalconClassificationDataEnhancement>
 {
 
     public delegate HImage[] 简单增强委托(HImage sourceImage);
@@ -23,46 +26,18 @@ public class HalconClassificationDataEnhancement
 
     private IEnumerable<SourceImageInfo> _sourceImageInfos = null!;
 
-    public HalconClassificationDataEnhancement DataEnhancement(
-        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
-    {
-        数据源不能未加载();
-        var infos = new List<DataEnhancementImageInfo>(100);
-
-        foreach (var sourceImageInfo in _sourceImageInfos)
-        {
-            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
-            infos.AddRange(dataEnhancementImageInfo);
-        }
-
-        _dataEnhancementImageInfos = infos;
-
-        return this;
-    }
-
     public HalconClassificationDataEnhancement LoadSouce(HDict hDict)
     {
         数据源不能已加载();
-        _sourceDict = HalconClassificationDict.FromHDict(hDict);
+        _sourceDict = new HalconClassificationDict();
+        _sourceDict.FromHDict(hDict);
         var errors = _sourceDict.Errors().ToArray();
 
-        if (errors.Any()) throw new Exception(string.Join("\n", errors));
+        if (errors.Length > 0) throw new Exception(string.Join("\n", errors));
 
         _sourceImageInfos = 解析数据();
 
         return this;
-    }
-
-    public HalconClassificationDataEnhancement LoadSourceFromPath(string dictPath,
-        HTuple? genParamName = default,
-        HTuple? genParamValue = default)
-    {
-        数据源不能已加载();
-        genParamName ??= new HTuple();
-        genParamValue ??= new HTuple();
-        var hDict = new HDict(dictPath, genParamName, genParamValue);
-
-        return LoadSouce(hDict);
     }
 
     public Task Save(string? newImageDir = default,
@@ -129,6 +104,23 @@ public class HalconClassificationDataEnhancement
             TaskCreationOptions.LongRunning);
     }
 
+    public HalconClassificationDataEnhancement DataEnhancement(
+        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
+    {
+        数据源不能未加载();
+        var infos = new List<DataEnhancementImageInfo>(100);
+
+        foreach (var sourceImageInfo in _sourceImageInfos)
+        {
+            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
+            infos.AddRange(dataEnhancementImageInfo);
+        }
+
+        _dataEnhancementImageInfos = infos;
+
+        return this;
+    }
+
     public HalconClassificationDataEnhancement SimpleDataEnhancement(简单增强委托 func)
     {
         数据源不能未加载();
@@ -180,7 +172,14 @@ public class HalconClassificationDataEnhancement
         if (_sourceDict != null) throw new Exception("数据已经加载");
     }
 
-    public class DataEnhancementImageInfo
+    public interface IImageInfo : IDataEnhancementImageInfo
+    {
+
+        public long LabelId { get; }
+
+    }
+
+    public class DataEnhancementImageInfo : IImageInfo
     {
 
         public string FileName { get; set; } = null!;
@@ -193,7 +192,7 @@ public class HalconClassificationDataEnhancement
 
     }
 
-    public class SourceImageInfo
+    public class SourceImageInfo : IImageInfo
     {
 
         public SourceImageInfo(string imageDir, long id, string fileName, long labelId)
@@ -206,16 +205,29 @@ public class HalconClassificationDataEnhancement
             Image = new HImage(imagePath);
         }
 
+        public string ImageDir { get; }
+
         public string FileName { get; }
 
         public long Id { get; }
 
         public HImage Image { get; }
 
-        public string ImageDir { get; }
-
         public long LabelId { get; }
 
     }
+
+}
+
+public interface IHalconDataEnhancement<out TImplement>
+{
+
+    TImplement LoadSouce(HDict hDict);
+
+    Task Save(string? newImageDir = null,
+        string? newDictPath = null,
+        HTuple? genParamName = null,
+        HTuple? genParamValue = null,
+        CancellationToken? token = null);
 
 }

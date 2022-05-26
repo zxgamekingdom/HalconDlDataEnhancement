@@ -5,11 +5,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HalconDotNet;
+using Halcon深度学习数据增强.DataEnhancements.Abstracts;
 using Halcon深度学习数据增强.Dicts;
 
 namespace Halcon深度学习数据增强.DataEnhancements;
 
-public class HalconSemanticSegmentationDataEnhancement
+public class HalconSemanticSegmentationDataEnhancement : IHalconDataEnhancement<
+    HalconSemanticSegmentationDataEnhancement>
 {
 
     public delegate (HImage Image, HImage SegmentationImage)[] 简单增强委托(HImage image,
@@ -21,46 +23,18 @@ public class HalconSemanticSegmentationDataEnhancement
 
     private IEnumerable<SourceImageInfo> _sourceImageInfos = null!;
 
-    public HalconSemanticSegmentationDataEnhancement DataEnhancement(
-        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
-    {
-        数据源不能未加载();
-        var infos = new List<DataEnhancementImageInfo>(100);
-
-        foreach (var sourceImageInfo in _sourceImageInfos)
-        {
-            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
-            infos.AddRange(dataEnhancementImageInfo);
-        }
-
-        _dataEnhancementImageInfos = infos;
-
-        return this;
-    }
-
     public HalconSemanticSegmentationDataEnhancement LoadSouce(HDict hDict)
     {
         数据源不能已加载();
-        _sourceDict = HalconSemanticSegmentationDict.FromHDict(hDict);
+        _sourceDict = new HalconSemanticSegmentationDict();
+        _sourceDict.FromHDict(hDict);
         var errors = _sourceDict.Errors().ToArray();
 
-        if (errors.Any()) throw new Exception(string.Join("\n", errors));
+        if (errors.Length > 0) throw new Exception(string.Join("\n", errors));
 
         _sourceImageInfos = 解析数据();
 
         return this;
-    }
-
-    public HalconSemanticSegmentationDataEnhancement LoadSourceFromPath(string dictPath,
-        HTuple? genParamName = default,
-        HTuple? genParamValue = default)
-    {
-        数据源不能已加载();
-        genParamName ??= new HTuple();
-        genParamValue ??= new HTuple();
-        var hDict = new HDict(dictPath, genParamName, genParamValue);
-
-        return LoadSouce(hDict);
     }
 
     public Task Save(string? newImageDir = default,
@@ -127,6 +101,23 @@ public class HalconSemanticSegmentationDataEnhancement
             TaskCreationOptions.LongRunning);
     }
 
+    public HalconSemanticSegmentationDataEnhancement DataEnhancement(
+        Func<SourceImageInfo, DataEnhancementImageInfo[]> func)
+    {
+        数据源不能未加载();
+        var infos = new List<DataEnhancementImageInfo>(100);
+
+        foreach (var sourceImageInfo in _sourceImageInfos)
+        {
+            var dataEnhancementImageInfo = func.Invoke(sourceImageInfo);
+            infos.AddRange(dataEnhancementImageInfo);
+        }
+
+        _dataEnhancementImageInfos = infos;
+
+        return this;
+    }
+
     public HalconSemanticSegmentationDataEnhancement SimpleDataEnhancement(简单增强委托 func)
     {
         数据源不能未加载();
@@ -138,15 +129,15 @@ public class HalconSemanticSegmentationDataEnhancement
             var images = func.Invoke(sourceImageInfo.Image,
                 sourceImageInfo.SegmentationImage);
 
-            foreach (var r in images)
+            foreach (var (Image, SegmentationImage) in images)
             {
                 count++;
 
                 infos.Add(new DataEnhancementImageInfo
                 {
                     Id = count,
-                    Image = r.Image,
-                    SegmentationImage = r.SegmentationImage,
+                    Image = Image,
+                    SegmentationImage = SegmentationImage,
                     FileName =
                         $"{Path.GetFileNameWithoutExtension(sourceImageInfo.FileName)}_{count}.png",
                     SegmentationFileName =
@@ -182,22 +173,31 @@ public class HalconSemanticSegmentationDataEnhancement
         if (_sourceDict != null) throw new Exception("数据已经加载");
     }
 
-    public class DataEnhancementImageInfo
+    public interface IImageInfo : IDataEnhancementImageInfo
     {
 
-        public string FileName { get; set; }
+        public string SegmentationFileName { get; }
 
-        public long Id { get; set; }
-
-        public HImage Image { get; set; }
-
-        public string SegmentationFileName { get; set; }
-
-        public HImage SegmentationImage { get; set; }
+        public HImage SegmentationImage { get; }
 
     }
 
-    public class SourceImageInfo
+    public class DataEnhancementImageInfo
+    {
+
+        public string FileName { get; set; } = null!;
+
+        public long Id { get; set; }
+
+        public HImage Image { get; set; } = null!;
+
+        public string SegmentationFileName { get; set; } = null!;
+
+        public HImage SegmentationImage { get; set; } = null!;
+
+    }
+
+    public class SourceImageInfo : IImageInfo
     {
 
         public SourceImageInfo(string imageDir,
@@ -220,15 +220,15 @@ public class HalconSemanticSegmentationDataEnhancement
             SegmentationImage = new HImage(segmentationImagePath);
         }
 
+        public string ImageDir { get; }
+
+        public string SegmentationDir { get; }
+
         public string FileName { get; }
 
         public long Id { get; }
 
         public HImage Image { get; }
-
-        public string ImageDir { get; }
-
-        public string SegmentationDir { get; }
 
         public string SegmentationFileName { get; }
 
