@@ -11,6 +11,7 @@ namespace Halcon深度学习数据增强.Dicts;
 public class
     HalconSemanticSegmentationDict : IHalconDict<HalconSemanticSegmentationDict.Sample>
 {
+
     public List<HDict?>? ClassCustomData { get; set; }
 
     public string? SegmentationDir { get; set; }
@@ -58,6 +59,8 @@ public class
                     d.FromKeyTuple("segmentation_file_name", x => x.S)
             });
         }
+
+        Samples = list;
     }
 
     public IEnumerable<string> Errors()
@@ -111,11 +114,14 @@ public class
 
     public static class ClassCustomDataConst
     {
+
         public const string IsBgClass = "is_bg_class";
+
     }
 
     public class Sample : IImageInfo, IHalconErrors
     {
+
         public string? SegmentationFileName { get; set; }
 
         public IEnumerable<string> Errors()
@@ -145,5 +151,7 @@ public class
 
             return dict;
         }
+
     }
+
 }

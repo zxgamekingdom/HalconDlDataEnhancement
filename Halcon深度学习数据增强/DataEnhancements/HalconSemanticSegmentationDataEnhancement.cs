@@ -129,15 +129,15 @@ public class HalconSemanticSegmentationDataEnhancement : IHalconDataEnhancement<
             var images = func.Invoke(sourceImageInfo.Image,
                 sourceImageInfo.SegmentationImage);
 
-            foreach (var (Image, SegmentationImage) in images)
+            foreach (var (image, segmentationImage) in images)
             {
                 count++;
 
                 infos.Add(new DataEnhancementImageInfo
                 {
                     Id = count,
-                    Image = Image,
-                    SegmentationImage = SegmentationImage,
+                    Image = image,
+                    SegmentationImage = segmentationImage,
                     FileName =
                         $"{Path.GetFileNameWithoutExtension(sourceImageInfo.FileName)}_{count}.png",
                     SegmentationFileName =

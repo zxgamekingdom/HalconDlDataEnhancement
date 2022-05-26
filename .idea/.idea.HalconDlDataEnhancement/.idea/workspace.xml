@@ -4,22 +4,8 @@
     <projectFile>Halcon深度学习数据增强/Halcon深度学习数据增强.csproj</projectFile>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3be7fd7d-af6b-4d16-b41c-5ed45447ae5d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.HalconDlDataEnhancement/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.HalconDlDataEnhancement/.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.HalconDlDataEnhancement/.idea/indexLayout.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.HalconDlDataEnhancement/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Halcon深度学习数据增强/DataEnhancements/HalconClassificationDataEnhancement.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Halcon深度学习数据增强/DataEnhancements/HalconClassificationDataEnhancement.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Halcon深度学习数据增强/DataEnhancements/HalconInstanceSegmentationDataEnhancement.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Halcon深度学习数据增强/DataEnhancements/HalconInstanceSegmentationDataEnhancement.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Halcon深度学习数据增强/DataEnhancements/HalconObjectDetectionDataEnhancement.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Halcon深度学习数据增强/DataEnhancements/HalconObjectDetectionDataEnhancement.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Halcon深度学习数据增强/DataEnhancements/HalconOrientedObjectDetectionDataEnhancement.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Halcon深度学习数据增强/DataEnhancements/HalconOrientedObjectDetectionDataEnhancement.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Halcon深度学习数据增强/DataEnhancements/HalconSemanticSegmentationDataEnhancement.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Halcon深度学习数据增强/DataEnhancements/HalconSemanticSegmentationDataEnhancement.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Halcon深度学习数据增强/Dicts/HalconClassificationDict.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Halcon深度学习数据增强/Dicts/HalconClassificationDict.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Halcon深度学习数据增强/Dicts/HalconInstanceSegmentationDict.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Halcon深度学习数据增强/Dicts/HalconInstanceSegmentationDict.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Halcon深度学习数据增强/Dicts/HalconObjectDetectionDict.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Halcon深度学习数据增强/Dicts/HalconObjectDetectionDict.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Halcon深度学习数据增强/Dicts/HalconOrientedObjectDetectionDict.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Halcon深度学习数据增强/Dicts/HalconOrientedObjectDetectionDict.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Halcon深度学习数据增强/Dicts/HalconSemanticSegmentationDict.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Halcon深度学习数据增强/Dicts/HalconSemanticSegmentationDict.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Halcon深度学习数据增强/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Halcon深度学习数据增强/Program.cs" afterDir="false" />
+    <list default="true" id="3be7fd7d-af6b-4d16-b41c-5ed45447ae5d" name="Changes" comment="将字典与数据增强类的数据类中有共同属性的字段都提取为接口">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.HalconDlDataEnhancement/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.HalconDlDataEnhancement/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +29,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="SWEA" />
+  </component>
   <component name="ProjectId" id="29HKI78Rd5RK4jBOuyQrhDq2rRv" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="1" id="Add" />
@@ -51,16 +40,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;XThreadsFramesViewSplitterKey&quot;: &quot;0.3482906&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;application.passwordSafe&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Rider.SolutionAnalysis.ShowFrameworks": "true",
+    "Rider.SolutionAnalysis.ShowIgnored": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "XThreadsFramesViewSplitterKey": "0.3482906",
+    "settings.editor.selected.configurable": "CodeInspectionSettingsId",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="Halcon深度学习数据增强" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="$PROJECT_DIR$/Halcon深度学习数据增强/bin/Debug/net48/Halcon深度学习数据增强.exe" />
@@ -100,7 +91,7 @@
       <workItem from="1653356218088" duration="5797000" />
       <workItem from="1653457605180" duration="7034000" />
       <workItem from="1653529450077" duration="17000" />
-      <workItem from="1653531651182" duration="2007000" />
+      <workItem from="1653531651182" duration="2849000" />
     </task>
     <task id="LOCAL-00001" summary="格式化代码">
       <created>1653455106526</created>
@@ -109,7 +100,14 @@
       <option name="project" value="LOCAL" />
       <updated>1653455106526</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="将字典与数据增强类的数据类中有共同属性的字段都提取为接口">
+      <created>1653534635525</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1653534635525</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -142,7 +140,8 @@
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="格式化代码" />
-    <option name="LAST_COMMIT_MESSAGE" value="格式化代码" />
+    <MESSAGE value="将字典与数据增强类的数据类中有共同属性的字段都提取为接口" />
+    <option name="LAST_COMMIT_MESSAGE" value="将字典与数据增强类的数据类中有共同属性的字段都提取为接口" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />

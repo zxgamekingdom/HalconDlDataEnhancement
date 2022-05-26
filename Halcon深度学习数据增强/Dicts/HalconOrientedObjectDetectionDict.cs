@@ -12,6 +12,7 @@ public class
     HalconOrientedObjectDetectionDict : IHalconDict<
         HalconOrientedObjectDetectionDict.Sample>
 {
+
     public List<long>? Ids { get; set; }
 
     public string? ImageDir { get; set; }
@@ -48,6 +49,8 @@ public class
                 BboxPhi = d.FromKeyTuple("bbox_phi", x => x.DArr.ToList())
             });
         }
+
+        Samples = list;
     }
 
     public IEnumerable<string> Errors()
@@ -91,6 +94,7 @@ public class
 
     public class Sample : IImageInfo, IHalconErrors
     {
+
         public List<double>? BboxCol { get; set; }
 
         public List<long>? BboxLabelId { get; set; }
@@ -161,5 +165,7 @@ public class
 
             return dict;
         }
+
     }
+
 }

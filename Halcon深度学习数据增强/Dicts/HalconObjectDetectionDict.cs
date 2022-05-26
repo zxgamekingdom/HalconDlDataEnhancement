@@ -10,6 +10,7 @@ namespace Halcon深度学习数据增强.Dicts;
 
 public class HalconObjectDetectionDict : IHalconDict<HalconObjectDetectionDict.Sample>
 {
+
     public List<long>? Ids { get; set; }
 
     public string? ImageDir { get; set; }
@@ -45,6 +46,8 @@ public class HalconObjectDetectionDict : IHalconDict<HalconObjectDetectionDict.S
                 BboxCol2 = d.FromKeyTuple("bbox_col2", x => x.DArr.ToList())
             });
         }
+
+        Samples = list;
     }
 
     public IEnumerable<string> Errors()
@@ -88,6 +91,7 @@ public class HalconObjectDetectionDict : IHalconDict<HalconObjectDetectionDict.S
 
     public class Sample : IImageInfo, IHalconErrors
     {
+
         public List<double>? BboxCol1 { get; set; }
 
         public List<double>? BboxCol2 { get; set; }
@@ -149,5 +153,7 @@ public class HalconObjectDetectionDict : IHalconDict<HalconObjectDetectionDict.S
 
             return dict;
         }
+
     }
+
 }

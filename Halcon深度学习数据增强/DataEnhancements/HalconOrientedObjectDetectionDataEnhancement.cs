@@ -95,7 +95,7 @@ public class HalconOrientedObjectDetectionDataEnhancement : IHalconDataEnhanceme
                         BboxPhi = imageInfo.BboxPhi
                     });
 
-                    var newImagePath = Path.Combine(newImageDir, imageInfo.FileName!);
+                    var newImagePath = Path.Combine(newImageDir, imageInfo.FileName);
                     var image = imageInfo.Image;
 
                     var extension = Path.GetExtension(newImagePath)
@@ -147,24 +147,22 @@ public class HalconOrientedObjectDetectionDataEnhancement : IHalconDataEnhanceme
                 sourceImageInfo.BboxLength2,
                 sourceImageInfo.BboxPhi);
 
-            foreach (
-                var (Image, BboxLabelId, BboxRow, BboxCol, BboxLength1, BboxLength2,
-                    BboxPhi) in results)
+            foreach (var (image, labelId, row, col, length1, length2, phi) in results)
             {
                 count++;
 
                 infos.Add(new DataEnhancementImageInfo
                 {
-                    Image = Image,
+                    Image = image,
                     Id = count,
                     FileName =
                         $"{Path.GetFileNameWithoutExtension(sourceImageInfo.FileName)}_{count}.png",
-                    BboxLabelId = BboxLabelId,
-                    BboxRow = BboxRow,
-                    BboxCol = BboxCol,
-                    BboxLength1 = BboxLength1,
-                    BboxLength2 = BboxLength2,
-                    BboxPhi = BboxPhi
+                    BboxLabelId = labelId,
+                    BboxRow = row,
+                    BboxCol = col,
+                    BboxLength1 = length1,
+                    BboxLength2 = length2,
+                    BboxPhi = phi
                 });
             }
         }
@@ -262,7 +260,7 @@ public class HalconOrientedObjectDetectionDataEnhancement : IHalconDataEnhanceme
             BboxLength1 = bboxLength1;
             BboxLength2 = bboxLength2;
             BboxPhi = bboxPhi;
-            var imagePath = Path.Combine(imageDir, fileName!);
+            var imagePath = Path.Combine(imageDir, fileName);
             Image = new HImage(imagePath);
         }
 

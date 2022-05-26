@@ -138,28 +138,27 @@ public class
         foreach (var sourceImageInfo in _sourceImageInfos)
         {
             var results = func.Invoke(sourceImageInfo.Image,
-                sourceImageInfo.BboxLabelId!,
-                sourceImageInfo.BboxRow1!,
-                sourceImageInfo.BboxCol1!,
-                sourceImageInfo.BboxRow2!,
-                sourceImageInfo.BboxCol2!);
+                sourceImageInfo.BboxLabelId,
+                sourceImageInfo.BboxRow1,
+                sourceImageInfo.BboxCol1,
+                sourceImageInfo.BboxRow2,
+                sourceImageInfo.BboxCol2);
 
-            foreach (var (Image, BboxLabelId, BboxRow1, BboxCol1, BboxRow2, BboxCol2) in
-                results)
+            foreach (var (image, labelId, row1, col1, row2, col2) in results)
             {
                 count++;
 
                 infos.Add(new DataEnhancementImageInfo
                 {
-                    Image = Image,
+                    Image = image,
                     Id = count,
                     FileName =
                         $"{Path.GetFileNameWithoutExtension(sourceImageInfo.FileName)}_{count}.png",
-                    BboxLabelId = BboxLabelId,
-                    BboxRow1 = BboxRow1,
-                    BboxCol1 = BboxCol1,
-                    BboxRow2 = BboxRow2,
-                    BboxCol2 = BboxCol2
+                    BboxLabelId = labelId,
+                    BboxRow1 = row1,
+                    BboxCol1 = col1,
+                    BboxRow2 = row2,
+                    BboxCol2 = col2
                 });
             }
         }
@@ -174,13 +173,13 @@ public class
         var samples = _sourceDict!.Samples!;
 
         return samples.Select(sample => new SourceImageInfo(_sourceDict!.ImageDir!,
-                sample.Id!.Value!,
-                sample!.FileName!,
-                sample!.BboxLabelId!,
-                sample!.BboxRow1!,
-                sample!.BboxCol1!,
-                sample!.BboxRow2!,
-                sample!.BboxCol2!))
+                sample.Id!.Value,
+                sample.FileName!,
+                sample.BboxLabelId!,
+                sample.BboxRow1!,
+                sample.BboxCol1!,
+                sample.BboxRow2!,
+                sample.BboxCol2!))
             .ToArray();
     }
 
@@ -250,7 +249,7 @@ public class
             BboxCol1 = bboxCol1;
             BboxRow2 = bboxRow2;
             BboxCol2 = bboxCol2;
-            var imagePath = Path.Combine(imageDir, fileName!);
+            var imagePath = Path.Combine(imageDir, fileName);
             Image = new HImage(imagePath);
         }
 
